@@ -95,6 +95,39 @@
             height: auto;
             margin: 5px 0;
         }
+
+        .avg-plots-container {
+            display: flex;
+            flex-direction: column;
+            gap: 80px;
+        }
+
+        .wavelength-plots {
+            display: flex;
+            justify-content: flex-start;
+            gap: 40px;
+        }
+
+        .plot-image {
+            text-align: left;
+        }
+
+        .plot-image img {
+            max-width: 1000px;
+            max-height: 1000px;
+            width: auto;
+            height: auto;
+        }
+
+        .wavelength-heading {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .lung-heading {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -106,6 +139,7 @@
                 <a href="{{ url_for('f_mode', wavelength='750') }}">750nm</a>
                 <a href="{{ url_for('f_mode', wavelength='806') }}">806nm</a>
                 <a href="{{ url_for('f_mode', wavelength='850') }}">850nm</a>
+                <a href="{{ url_for('f_mode', wavelength='avg_plots') }}">Avg Plots</a>
             </div>
         </div>
         <a href="{{ url_for('dwt') }}">DWT</a>
@@ -150,6 +184,35 @@
         {% endfor %}
     </table>
     {% endfor %}
+    {% elif content == 'Average Plots' %}
+    <h2>Average Plots</h2>
+    <div class="avg-plots-container">
+        {% for wavelength, sides in avg_plots.items()|sort %}
+        <div>
+            <h3 class="wavelength-heading">{{ wavelength }}nm</h3>
+            <div class="wavelength-plots">
+                <div class="plot-image">
+                    <h4 class="lung-heading">Left Lung</h4>
+                    {% if sides['left'] %}
+                    <img src="{{ url_for('static', filename='imgs/' + sides['left']) }}"
+                         alt="Left lung average plot {{ wavelength }}nm">
+                    {% else %}
+                    <p>No image available</p>
+                    {% endif %}
+                </div>
+                <div class="plot-image">
+                    <h4 class="lung-heading">Right Lung</h4>
+                    {% if sides['right'] %}
+                    <img src="{{ url_for('static', filename='imgs/' + sides['right']) }}"
+                         alt="Right lung average plot {{ wavelength }}nm">
+                    {% else %}
+                    <p>No image available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
     {% endif %}
 </div>
 </body>
