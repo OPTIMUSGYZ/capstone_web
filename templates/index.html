@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wavelength Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+        nav a {
+            float: left;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .content {
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        img {
+            max-width: 400px;
+            max-height: 400px;
+            width: auto;
+            height: auto;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/750nm">750nm</a>
+        <a href="/806nm">806nm</a>
+        <a href="/850nm">850nm</a>
+    </nav>
+    <div class="content">
+        {% if content in ['750nm Information', '806nm Information', '850nm Information'] %}
+            <h2>{{ content.split()[0] }} Images</h2>
+            {% for mn, data in organized_images.items() %}
+                <h3>Mouse {{ mn }}</h3>
+                <table>
+                    <tr>
+                        <th></th>
+                        <th>pre</th>
+                        <th>2hpi</th>
+                        <th>4hpi</th>
+                        <th>6hpi</th>
+                    </tr>
+                    {% for side in ['left', 'right'] %}
+                        <tr>
+                            <th>{{ side.capitalize() }}</th>
+                            {% for time in ['pre', '2hpi', '4hpi', '6hpi'] %}
+                                <td>
+                                    <div class="image-container">
+                                        {% if '.png' in data[side][time] %}
+                                            <img src="{{ url_for('static', filename='imgs/' + data[side][time]['.png']) }}" alt="{{ side }} {{ time }} PNG">
+                                        {% endif %}
+                                        {% if '.gif' in data[side][time] %}
+                                            <img src="{{ url_for('static', filename='imgs/' + data[side][time]['.gif']) }}" alt="{{ side }} {{ time }} GIF">
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endfor %}
+        {% else %}
+            <p>Please select a wavelength from the navigation menu.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
