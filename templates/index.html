@@ -113,8 +113,8 @@
         }
 
         .plot-image img {
-            max-width: 1000px;
-            max-height: 1000px;
+            max-width: 665px;
+            max-height: 665px;
             width: auto;
             height: auto;
         }
@@ -127,6 +127,14 @@
         .lung-heading {
             font-size: 20px;
             margin-bottom: 10px;
+        }
+
+        .plot-title {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-weight: normal;
+            text-align: center;
         }
     </style>
 </head>
@@ -191,24 +199,19 @@
         <div>
             <h3 class="wavelength-heading">{{ wavelength }}nm</h3>
             <div class="wavelength-plots">
+                {% for side in ['left', 'right'] %}
                 <div class="plot-image">
-                    <h4 class="lung-heading">Left Lung</h4>
-                    {% if sides['left'] %}
-                    <img src="{{ url_for('static', filename='imgs/' + sides['left']) }}"
-                         alt="Left lung average plot {{ wavelength }}nm">
+                    <h4 class="lung-heading">{{ side|capitalize }} Lung</h4>
+                    {% if sides[side] %}
+                    {% set filename = sides[side] %}
+                    <h5 class="plot-title">Average ROI Mean vs. Frequency - Mice 33 to 37, 41, 43, 44</h5>
+                    <img src="{{ url_for('static', filename='imgs/' + filename) }}"
+                         alt="{{ side|capitalize }} lung average plot {{ wavelength }}nm">
                     {% else %}
                     <p>No image available</p>
                     {% endif %}
                 </div>
-                <div class="plot-image">
-                    <h4 class="lung-heading">Right Lung</h4>
-                    {% if sides['right'] %}
-                    <img src="{{ url_for('static', filename='imgs/' + sides['right']) }}"
-                         alt="Right lung average plot {{ wavelength }}nm">
-                    {% else %}
-                    <p>No image available</p>
-                    {% endif %}
-                </div>
+                {% endfor %}
             </div>
         </div>
         {% endfor %}

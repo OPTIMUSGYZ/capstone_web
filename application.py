@@ -55,7 +55,6 @@ def get_average_plot_images():
             if wavelength not in avg_plots:
                 avg_plots[wavelength] = {'left': None, 'right': None}
             avg_plots[wavelength][side] = img
-    print(avg_plots)
     return avg_plots
 
 
@@ -82,4 +81,4 @@ def dwt():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=9140, debug=False)
