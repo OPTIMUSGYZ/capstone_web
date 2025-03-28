@@ -4,6 +4,7 @@ import re
 
 app = Flask(__name__)
 
+
 def parse_image_name(filename):
     pattern = r"PA_Mouse(\d+)_(left|right)_lung_(pre|2hpi|4hpi|6hpi)_p_2_(\d+).*"
     match = re.match(pattern, filename)
@@ -35,26 +36,31 @@ def organize_images(images):
     sorted_organized = dict(sorted(organized.items(), key=lambda x: int(x[0])))
     return sorted_organized
 
+
 def get_wavelength_images(wavelength):
     image_dir = os.path.join(app.static_folder, 'imgs')
     images = [img for img in os.listdir(image_dir) if wavelength in img and (img.endswith('.gif') or img.endswith('.png'))]
     return organize_images(images)
 
+
 @app.route('/')
-@app.route('/750nm')
-def nm750():
-    organized_images = get_wavelength_images('750')
-    return render_template('index.html', content='750nm Information', organized_images=organized_images)
+def index():
+    return render_template('index.html', content='Welcome')
 
-@app.route('/806nm')
-def nm806():
-    organized_images = get_wavelength_images('806')
-    return render_template('index.html', content='806nm Information', organized_images=organized_images)
 
-@app.route('/850nm')
-def nm850():
-    organized_images = get_wavelength_images('850')
-    return render_template('index.html', content='850nm Information', organized_images=organized_images)
+@app.route('/f-mode/<wavelength>')
+def f_mode(wavelength):
+    if wavelength in ['750', '806', '850']:
+        organized_images = get_wavelength_images(wavelength)
+        return render_template('index.html', content=f'{wavelength}nm Information', organized_images=organized_images)
+    else:
+        return "Invalid wavelength", 400
+
+
+@app.route('/dwt')
+def dwt():
+    return render_template('index.html', content='DWT - Coming Soon')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
