@@ -117,7 +117,6 @@ def f_mode(wavelength):
 def dwt(mode):
     if mode in ['US', 'PA']:
         organized_images = get_dwt_images(mode)
-        print(organized_images)
         return render_template('index.html', content=f'DWT {mode}', organized_images=organized_images)
     else:
         return "Invalid DWT mode", 400
