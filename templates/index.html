@@ -187,6 +187,32 @@
             font-style: italic;
             color: #666;
         }
+
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 175px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .image-container {
+            min-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -323,23 +349,27 @@
         }
 
         function loadImage(image) {
-            if (!image) return;
+            if (!image || image.classList.contains('loaded')) return;
 
-            if (!image.classList.contains('loaded')) {
-                const img = new Image();
-                img.onload = function() {
-                    image.src = image.dataset.src;
-                    image.classList.add('loaded');
-                    setTimeout(loadNextImage, 100); // Small delay before loading next image
-                };
-                img.onerror = function() {
-                    console.error("Failed to load image:", image.dataset.src);
-                    setTimeout(loadNextImage, 100);
-                };
-                img.src = image.dataset.src;
-            } else {
-                loadNextImage();
-            }
+            const spinner = document.createElement('div');
+            spinner.className = 'loading-spinner';
+            image.parentNode.insertBefore(spinner, image);
+            image.style.display = 'none';
+
+            const img = new Image();
+            img.onload = function () {
+                image.src = image.dataset.src;
+                image.classList.add('loaded', 'fade-in');
+                image.style.display = '';
+                spinner.remove();
+                setTimeout(loadNextImage, 100); // Small delay before loading next image
+            };
+            img.onerror = function () {
+                console.error("Failed to load image:", image.dataset.src);
+                spinner.remove();
+                setTimeout(loadNextImage, 100);
+            };
+            img.src = image.dataset.src;
         }
 
         function loadNextImage() {
@@ -352,7 +382,7 @@
         // Start loading images
         loadNextImage();
 
-        // Optional: Use IntersectionObserver to prioritize visible images
+        // Use IntersectionObserver to prioritize visible images
         if ("IntersectionObserver" in window) {
             let lazyImageObserver = new IntersectionObserver(function (entries, observer) {
                 entries.forEach(function (entry) {
