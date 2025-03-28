@@ -5,7 +5,7 @@ import re
 app = Flask(__name__)
 
 
-def parse_image_name(filename):
+def parse_fmode_image_name(filename):
     pattern = r"PA_Mouse(\d+)_(left|right)_lung_(pre|2hpi|4hpi|6hpi)_p_2_(\d+).*"
     match = re.match(pattern, filename)
     if match:
@@ -19,10 +19,24 @@ def parse_image_name(filename):
     return None
 
 
-def organize_images(images):
+def parse_dwt_image_name(filename):
+    pattern = r"(US|PA)_Mouse(\d+)_(left|right)_lung_(pre|4hpi|6hpi)_p_2_wav806_haar_(AvgWavelet|AreaUnderCurve|AUC)\.png"
+    match = re.match(pattern, filename)
+    if match:
+        return {
+            'mode': match.group(1),
+            'mn': match.group(2),
+            'side': match.group(3),
+            'time': match.group(4),
+            'type': match.group(5)
+        }
+    return None
+
+
+def organize_fmode_images(images):
     organized = {}
     for img in images:
-        info = parse_image_name(img)
+        info = parse_fmode_image_name(img)
         if info:
             mn = info['mn']
             if mn not in organized:
@@ -37,10 +51,34 @@ def organize_images(images):
     return sorted_organized
 
 
+def organize_dwt_images(images):
+    organized = {}
+    for img in images:
+        info = parse_dwt_image_name(img)
+        if info:
+            mn = info['mn']
+            if mn not in organized:
+                organized[mn] = {
+                    'left': {'pre': {}, '4hpi': {}, '6hpi': {}},
+                    'right': {'pre': {}, '4hpi': {}, '6hpi': {}}
+                }
+            organized[mn][info['side']][info['time']][info['type']] = img
+
+    # Sort the organized dictionary by mouse number (mn)
+    sorted_organized = dict(sorted(organized.items(), key=lambda x: int(x[0])))
+    return sorted_organized
+
+
 def get_wavelength_images(wavelength):
     image_dir = os.path.join(app.static_folder, 'imgs')
     images = [img for img in os.listdir(image_dir) if wavelength in img and (img.endswith('.gif') or img.endswith('.png'))]
-    return organize_images(images)
+    return organize_fmode_images(images)
+
+
+def get_dwt_images(mode):
+    image_dir = os.path.join(app.static_folder, 'imgs')
+    images = [img for img in os.listdir(image_dir) if img.startswith(f'{mode}_Mouse') and img.endswith('.png')]
+    return organize_dwt_images(images)
 
 
 def get_average_plot_images():
@@ -75,9 +113,14 @@ def f_mode(wavelength):
         return "Invalid wavelength", 400
 
 
-@app.route('/dwt')
-def dwt():
-    return render_template('index.html', content='DWT - Coming Soon')
+@app.route('/dwt/<mode>')
+def dwt(mode):
+    if mode in ['US', 'PA']:
+        organized_images = get_dwt_images(mode)
+        print(organized_images)
+        return render_template('index.html', content=f'DWT {mode}', organized_images=organized_images)
+    else:
+        return "Invalid DWT mode", 400
 
 
 if __name__ == '__main__':

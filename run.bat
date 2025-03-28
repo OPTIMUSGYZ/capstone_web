@@ -1,0 +1,1 @@
+"G:\python_venv\3-12_venv\Scripts\python.exe" application.py

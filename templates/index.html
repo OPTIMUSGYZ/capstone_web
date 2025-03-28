@@ -213,6 +213,36 @@
             justify-content: center;
             align-items: center;
         }
+
+        .dwt-table {
+            width: 100%;
+            table-layout: auto;
+        }
+
+        .dwt-table th,
+        .dwt-table td {
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+        .dwt-image-container {
+            min-height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dwt-image {
+            max-width: 600px;
+            max-height: 400px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .content {
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
@@ -228,7 +258,13 @@
                 <a href="{{ url_for('f_mode', wavelength='avg_plots') }}">Avg Plots</a>
             </div>
         </div>
-        <a href="{{ url_for('dwt') }}">DWT</a>
+        <div class="dropdown">
+            <a href="#">DWT</a>
+            <div class="dropdown-content">
+                <a href="{{ url_for('dwt', mode='US') }}">US</a>
+                <a href="{{ url_for('dwt', mode='PA') }}">PA</a>
+            </div>
+        </div>
     </div>
 </nav>
 
@@ -254,8 +290,47 @@
         </ul>
         <p class="nav-instruction">Please select an option from the navigation bar above to view the project data.</p>
     </div>
-    {% elif content == 'DWT - Coming Soon' %}
-    <p>DWT functionality is coming soon.</p>
+    {% elif content in ['DWT US', 'DWT PA'] %}
+    <h2>{{ content }} Images</h2>
+    {% for mn, data in organized_images.items() %}
+    <h3>Mouse {{ mn }}</h3>
+    <table class="dwt-table">
+        <tr>
+            <th></th>
+            <th>pre</th>
+            <th>4hpi</th>
+            <th>6hpi</th>
+            <th>Area Under Curve</th>
+        </tr>
+        <tr>
+            <th>Right Lung</th>
+            {% for time in ['pre', '4hpi', '6hpi'] %}
+            <td>
+                <div class="image-container dwt-image-container">
+                    {% if 'AvgWavelet' in data['right'][time] %}
+                    <img class="lazy dwt-image"
+                         data-src="{{ url_for('static', filename='imgs/' + data['right'][time]['AvgWavelet']) }}"
+                         alt="right {{ time }} AvgWavelet">
+                    {% endif %}
+                </div>
+            </td>
+            {% endfor %}
+            <td>
+                <div class="image-container dwt-image-container">
+                    {% if content == 'DWT US' and 'AreaUnderCurve' in data['right']['6hpi'] %}
+                    <img class="lazy dwt-image"
+                         data-src="{{ url_for('static', filename='imgs/' + data['right']['6hpi']['AreaUnderCurve']) }}"
+                         alt="right AreaUnderCurve">
+                    {% elif content == 'DWT PA' and 'AUC' in data['right']['6hpi'] %}
+                    <img class="lazy dwt-image"
+                         data-src="{{ url_for('static', filename='imgs/' + data['right']['6hpi']['AUC']) }}"
+                         alt="right AUC">
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
+    {% endfor %}
     {% elif content in ['750nm Information', '806nm Information', '850nm Information'] %}
     <h2>{{ content.split()[0] }} Images</h2>
     {% for mn, data in organized_images.items() %}
@@ -329,20 +404,15 @@
             if (currentMouseIndex >= tables.length) return null;
 
             const currentTable = tables[currentMouseIndex];
-            const currentSide = sides[currentSideIndex];
             const currentTime = timeOrder[currentTimeIndex];
 
-            const image = currentTable.querySelector(`img[alt*="${currentSide}"][alt*="${currentTime}"]`);
+            const image = currentTable.querySelector(`img[alt*="${currentTime}"]`);
 
             // Move to next time
             currentTimeIndex++;
             if (currentTimeIndex >= timeOrder.length) {
                 currentTimeIndex = 0;
-                currentSideIndex++;
-                if (currentSideIndex >= sides.length) {
-                    currentSideIndex = 0;
-                    currentMouseIndex++;
-                }
+                currentMouseIndex++;
             }
 
             return image;
@@ -362,13 +432,14 @@
                 image.classList.add('loaded', 'fade-in');
                 image.style.display = '';
                 spinner.remove();
-                setTimeout(loadNextImage, 100); // Small delay before loading next image
+                setTimeout(loadNextImage, 10); // Small delay before loading next image
             };
             img.onerror = function () {
                 console.error("Failed to load image:", image.dataset.src);
                 spinner.remove();
-                setTimeout(loadNextImage, 100);
+                setTimeout(loadNextImage, 10);
             };
+
             img.src = image.dataset.src;
         }
 
