@@ -89,7 +89,7 @@
         }
 
         img {
-            max-width: 400px;
+            max-width: 600px;
             max-height: 400px;
             width: auto;
             height: auto;
@@ -113,8 +113,8 @@
         }
 
         .plot-image img {
-            max-width: 665px;
-            max-height: 665px;
+            max-width: 800px;
+            max-height: 600px;
             width: auto;
             height: auto;
         }
@@ -243,6 +243,44 @@
         .content {
             overflow-x: auto;
         }
+
+        @media screen and (max-width: 768px) {
+            .image-table {
+                display: none;
+            }
+
+            .image-list {
+                display: block;
+            }
+
+            .image-item {
+                margin-bottom: 20px;
+            }
+        }
+
+        @media screen and (min-width: 769px) {
+            .image-table {
+                display: table;
+            }
+
+            .image-list {
+                display: none;
+            }
+        }
+
+        .image-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .image-item {
+            text-align: center;
+        }
+
+        .image-item img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -292,102 +330,180 @@
     </div>
     {% elif content in ['DWT US', 'DWT PA'] %}
     <h2>{{ content }} Images</h2>
-    {% for mn, data in organized_images.items() %}
-    <h3>Mouse {{ mn }}</h3>
-    <table class="dwt-table">
-        <tr>
-            <th></th>
-            <th>pre</th>
-            <th>4hpi</th>
-            <th>6hpi</th>
-            <th>Area Under Curve</th>
-        </tr>
-        <tr>
-            <th>Right Lung</th>
-            {% for time in ['pre', '4hpi', '6hpi'] %}
-            <td>
-                <div class="image-container dwt-image-container">
-                    {% if 'AvgWavelet' in data['right'][time] %}
-                    <img class="lazy dwt-image"
-                         data-src="{{ url_for('static', filename='imgs/' + data['right'][time]['AvgWavelet']) }}"
-                         alt="right {{ time }} AvgWavelet">
-                    {% endif %}
-                </div>
-            </td>
-            {% endfor %}
-            <td>
-                <div class="image-container dwt-image-container">
-                    {% if content == 'DWT US' and 'AreaUnderCurve' in data['right']['6hpi'] %}
-                    <img class="lazy dwt-image"
-                         data-src="{{ url_for('static', filename='imgs/' + data['right']['6hpi']['AreaUnderCurve']) }}"
-                         alt="right AreaUnderCurve">
-                    {% elif content == 'DWT PA' and 'AUC' in data['right']['6hpi'] %}
-                    <img class="lazy dwt-image"
-                         data-src="{{ url_for('static', filename='imgs/' + data['right']['6hpi']['AUC']) }}"
-                         alt="right AUC">
-                    {% endif %}
-                </div>
-            </td>
-        </tr>
-    </table>
-    {% endfor %}
-    {% elif content in ['750nm Information', '806nm Information', '850nm Information'] %}
-    <h2>{{ content.split()[0] }} Images</h2>
-    {% for mn, data in organized_images.items() %}
-    <h3>Mouse {{ mn }}</h3>
-    <table>
-        <tr>
-            <th></th>
-            <th>pre</th>
-            <th>2hpi</th>
-            <th>4hpi</th>
-            <th>6hpi</th>
-        </tr>
-        {% for side in ['left', 'right'] %}
-        <tr>
-            <th>{{ side.capitalize() }}</th>
-            {% for time in ['pre', '2hpi', '4hpi', '6hpi'] %}
-            <td>
-                <div class="image-container">
-                    {% if '.png' in data[side][time] %}
-                    <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + data[side][time]['.png']) }}"
-                         alt="{{ side }} {{ time }} PNG">
-                    {% endif %}
-                    {% if '.gif' in data[side][time] %}
-                    <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + data[side][time]['.gif']) }}"
-                         alt="{{ side }} {{ time }} GIF">
-                    {% endif %}
-                </div>
-            </td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </table>
-    {% endfor %}
-    {% elif content == 'Average Plots' %}
-    <h2>Average Plots</h2>
-    <div class="avg-plots-container">
-        {% for wavelength, sides in avg_plots.items()|sort %}
-        <div>
-            <h3 class="wavelength-heading">{{ wavelength }}nm</h3>
-            <div class="wavelength-plots">
-                {% for side in ['left', 'right'] %}
-                <div class="plot-image">
-                    <h4 class="lung-heading">{{ side|capitalize }} Lung</h4>
-                    {% if sides[side] %}
-                    {% set filename = sides[side] %}
-                    <h5 class="plot-title">Average ROI Mean vs. Frequency - Mice 33 to 37, 41, 43, 44</h5>
-                    <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + filename) }}"
-                         alt="{{ side|capitalize }} lung average plot {{ wavelength }}nm">
-                    {% else %}
-                    <p>No image available</p>
-                    {% endif %}
-                </div>
+    <div class="image-table">
+        {% for mn, data in organized_images.items() %}
+        <h3>Mouse {{ mn }}</h3>
+        <table class="dwt-table">
+            <tr>
+                <th></th>
+                <th>pre</th>
+                <th>4hpi</th>
+                <th>6hpi</th>
+                <th>Area Under Curve</th>
+            </tr>
+            <tr>
+                <th>Right Lung</th>
+                {% for time in ['pre', '4hpi', '6hpi'] %}
+                <td>
+                    <div class="image-container dwt-image-container">
+                        {% if 'AvgWavelet' in data['right'][time] %}
+                        <img class="lazy dwt-image"
+                             data-src="{{ url_for('static', filename='imgs/' + data['right'][time]['AvgWavelet']) }}"
+                             alt="right {{ time }} AvgWavelet">
+                        {% endif %}
+                    </div>
+                </td>
                 {% endfor %}
-            </div>
-        </div>
+                <td>
+                    <div class="image-container dwt-image-container">
+                        {% if content == 'DWT US' and 'AreaUnderCurve' in data['right']['6hpi'] %}
+                        <img class="lazy dwt-image"
+                             data-src="{{ url_for('static', filename='imgs/' + data['right']['6hpi']['AreaUnderCurve']) }}"
+                             alt="right AreaUnderCurve">
+                        {% elif content == 'DWT PA' and 'AUC' in data['right']['6hpi'] %}
+                        <img class="lazy dwt-image"
+                             data-src="{{ url_for('static', filename='imgs/' + data['right']['6hpi']['AUC']) }}"
+                             alt="right AUC">
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+        </table>
         {% endfor %}
     </div>
+    <ul class="image-list">
+        {% for mn, data in organized_images.items() %}
+        {% for time in ['pre', '4hpi', '6hpi'] %}
+        {% if 'AvgWavelet' in data['right'][time] %}
+        <li class="image-item">
+            <h3>Mouse {{ mn }} - Right - {{ time }}</h3>
+            <img class="lazy dwt-image"
+                 data-src="{{ url_for('static', filename='imgs/' + data['right'][time]['AvgWavelet']) }}"
+                 alt="right {{ time }} AvgWavelet">
+        </li>
+        {% endif %}
+        {% endfor %}
+        {% if content == 'DWT US' and 'AreaUnderCurve' in data['right']['6hpi'] %}
+        <li class="image-item">
+            <h3>Mouse {{ mn }} - Right - Area Under Curve</h3>
+            <img class="lazy dwt-image"
+                 data-src="{{ url_for('static', filename='imgs/' + data['right']['6hpi']['AreaUnderCurve']) }}"
+                 alt="right AreaUnderCurve">
+        </li>
+        {% elif content == 'DWT PA' and 'AUC' in data['right']['6hpi'] %}
+        <li class="image-item">
+            <h3>Mouse {{ mn }} - Right - Area Under Curve</h3>
+            <img class="lazy dwt-image"
+                 data-src="{{ url_for('static', filename='imgs/' + data['right']['6hpi']['AUC']) }}"
+                 alt="right AUC">
+        </li>
+        {% endif %}
+        {% endfor %}
+    </ul>
+    {% elif content in ['750nm Information', '806nm Information', '850nm Information'] %}
+    <h2>{{ content.split()[0] }} Images</h2>
+    <div class="image-table">
+        {% for mn, data in organized_images.items() %}
+        <h3>Mouse {{ mn }}</h3>
+        <table>
+            <tr>
+                <th></th>
+                <th>pre</th>
+                <th>2hpi</th>
+                <th>4hpi</th>
+                <th>6hpi</th>
+            </tr>
+            {% for side in ['left', 'right'] %}
+            <tr>
+                <th>{{ side.capitalize() }}</th>
+                {% for time in ['pre', '2hpi', '4hpi', '6hpi'] %}
+                <td>
+                    <div class="image-container">
+                        {% if '.png' in data[side][time] %}
+                        <img class="lazy"
+                             data-src="{{ url_for('static', filename='imgs/' + data[side][time]['.png']) }}"
+                             alt="{{ side }} {{ time }} PNG">
+                        {% endif %}
+                        {% if '.gif' in data[side][time] %}
+                        <img class="lazy"
+                             data-src="{{ url_for('static', filename='imgs/' + data[side][time]['.gif']) }}"
+                             alt="{{ side }} {{ time }} GIF">
+                        {% endif %}
+                    </div>
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% endfor %}
+    </div>
+    <ul class="image-list">
+        {% for mn, data in organized_images.items() %}
+        {% for side in ['left', 'right'] %}
+        {% for time in ['pre', '2hpi', '4hpi', '6hpi'] %}
+        {% if '.png' in data[side][time] or '.gif' in data[side][time] %}
+        <li class="image-item">
+            <h3>Mouse {{ mn }} - {{ side.capitalize() }} - {{ time }}</h3>
+            {% if '.png' in data[side][time] %}
+            <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + data[side][time]['.png']) }}"
+                 alt="{{ side }} {{ time }} PNG">
+            {% endif %}
+            {% if '.gif' in data[side][time] %}
+            <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + data[side][time]['.gif']) }}"
+                 alt="{{ side }} {{ time }} GIF">
+            {% endif %}
+        </li>
+        {% endif %}
+        {% endfor %}
+        {% endfor %}
+        {% endfor %}
+    </ul>
+    {% elif content == 'Average Plots' %}
+    <h2>Average Plots</h2>
+    <div class="image-table">
+        {% for wavelength, sides in avg_plots.items()|sort %}
+        <h3 class="wavelength-heading">{{ wavelength }}nm</h3>
+        <table>
+            <tr>
+                <th>Left Lung</th>
+                <th>Right Lung</th>
+            </tr>
+            <tr>
+                {% for side in ['left', 'right'] %}
+                <td>
+                    <div class="plot-image">
+                        {% if sides[side] %}
+                        {% set filename = sides[side] %}
+                        <h5 class="plot-title">Average ROI Mean vs. Frequency - Mice 33 to 37, 41, 43, 44</h5>
+                        <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + filename) }}"
+                             alt="{{ side|capitalize }} lung average plot {{ wavelength }}nm">
+                        {% else %}
+                        <p>No image available</p>
+                        {% endif %}
+                    </div>
+                </td>
+                {% endfor %}
+            </tr>
+        </table>
+        {% endfor %}
+    </div>
+    <ul class="image-list">
+        {% for wavelength, sides in avg_plots.items()|sort %}
+        {% for side in ['left', 'right'] %}
+        <li class="image-item">
+            <h3>{{ wavelength }}nm - {{ side|capitalize }} Lung</h3>
+            {% if sides[side] %}
+            {% set filename = sides[side] %}
+            <h5 class="plot-title">Average ROI Mean vs. Frequency - Mice 33 to 37, 41, 43, 44</h5>
+            <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + filename) }}"
+                 alt="{{ side|capitalize }} lung average plot {{ wavelength }}nm">
+            {% else %}
+            <p>No image available</p>
+            {% endif %}
+        </li>
+        {% endfor %}
+        {% endfor %}
+    </ul>
     {% endif %}
 </div>
 
@@ -401,21 +517,29 @@
 
         function getNextImage() {
             const tables = document.querySelectorAll('table');
-            if (currentMouseIndex >= tables.length) return null;
+            const listItems = document.querySelectorAll('.image-item');
+            const isMobile = window.innerWidth <= 768;
 
-            const currentTable = tables[currentMouseIndex];
-            const currentTime = timeOrder[currentTimeIndex];
+            if (isMobile) {
+                if (currentMouseIndex >= listItems.length) return null;
+                return listItems[currentMouseIndex++].querySelector('img');
+            } else {
+                if (currentMouseIndex >= tables.length) return null;
 
-            const image = currentTable.querySelector(`img[alt*="${currentTime}"]`);
+                const currentTable = tables[currentMouseIndex];
+                const currentTime = timeOrder[currentTimeIndex];
 
-            // Move to next time
-            currentTimeIndex++;
-            if (currentTimeIndex >= timeOrder.length) {
-                currentTimeIndex = 0;
-                currentMouseIndex++;
+                const image = currentTable.querySelector(`img[alt*="${currentTime}"]`);
+
+                // Move to next time
+                currentTimeIndex++;
+                if (currentTimeIndex >= timeOrder.length) {
+                    currentTimeIndex = 0;
+                    currentMouseIndex++;
+                }
+
+                return image;
             }
-
-            return image;
         }
 
         function loadImage(image) {
