@@ -232,7 +232,37 @@
     <p>DWT functionality is coming soon.</p>
     {% elif content in ['750nm Information', '806nm Information', '850nm Information'] %}
     <h2>{{ content.split()[0] }} Images</h2>
-    <div id="image-container"></div>
+    {% for mn, data in organized_images.items() %}
+    <h3>Mouse {{ mn }}</h3>
+    <table>
+        <tr>
+            <th></th>
+            <th>pre</th>
+            <th>2hpi</th>
+            <th>4hpi</th>
+            <th>6hpi</th>
+        </tr>
+        {% for side in ['left', 'right'] %}
+        <tr>
+            <th>{{ side.capitalize() }}</th>
+            {% for time in ['pre', '2hpi', '4hpi', '6hpi'] %}
+            <td>
+                <div class="image-container">
+                    {% if '.png' in data[side][time] %}
+                    <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + data[side][time]['.png']) }}"
+                         alt="{{ side }} {{ time }} PNG">
+                    {% endif %}
+                    {% if '.gif' in data[side][time] %}
+                    <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + data[side][time]['.gif']) }}"
+                         alt="{{ side }} {{ time }} GIF">
+                    {% endif %}
+                </div>
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
     {% elif content == 'Average Plots' %}
     <h2>Average Plots</h2>
     <div class="avg-plots-container">
@@ -246,7 +276,7 @@
                     {% if sides[side] %}
                     {% set filename = sides[side] %}
                     <h5 class="plot-title">Average ROI Mean vs. Frequency - Mice 33 to 37, 41, 43, 44</h5>
-                    <img src="{{ url_for('static', filename='imgs/' + filename) }}"
+                    <img class="lazy" data-src="{{ url_for('static', filename='imgs/' + filename) }}"
                          alt="{{ side|capitalize }} lung average plot {{ wavelength }}nm">
                     {% else %}
                     <p>No image available</p>
@@ -259,91 +289,86 @@
     </div>
     {% endif %}
 </div>
+
 <script>
-    const imageData = JSON.parse('{{ organized_images|tojson|safe if organized_images else "{}" }}');
-    let currentIndex = 0;
-    const itemsPerLoad = 2;
-    let isLoading = false;
+    document.addEventListener("DOMContentLoaded", function () {
+        const timeOrder = ['pre', '2hpi', '4hpi', '6hpi'];
+        const sides = ['left', 'right'];
+        let currentMouseIndex = 0;
+        let currentSideIndex = 0;
+        let currentTimeIndex = 0;
 
-    function loadMoreContent() {
-        if (isLoading) return;
-        isLoading = true;
+        function getNextImage() {
+            const tables = document.querySelectorAll('table');
+            if (currentMouseIndex >= tables.length) return null;
 
-        const container = document.getElementById('image-container');
-        const keys = Object.keys(imageData);
+            const currentTable = tables[currentMouseIndex];
+            const currentSide = sides[currentSideIndex];
+            const currentTime = timeOrder[currentTimeIndex];
 
-        for (let i = 0; i < itemsPerLoad && currentIndex < keys.length; i++) {
-            const key = keys[currentIndex];
-            const mouseData = imageData[key];
-            const mouseHtml = `
-                <h3>Mouse ${key}</h3>
-                <table>
-                    <tr>
-                        <th></th>
-                        <th>pre</th>
-                        <th>2hpi</th>
-                        <th>4hpi</th>
-                        <th>6hpi</th>
-                    </tr>
-                    ${['left', 'right'].map(side => `
-                        <tr>
-                            <th>${side.charAt(0).toUpperCase() + side.slice(1)}</th>
-                            ${['pre', '2hpi', '4hpi', '6hpi'].map(time => `
-                                <td>
-                                    <div class="image-container">
-                                        ${mouseData[side][time]['.png'] ? `
-                                            <img class="lazy" data-src="/static/imgs/${mouseData[side][time]['.png']}"
-                                                 alt="${side} ${time} PNG">
-                                        ` : ''}
-                                        ${mouseData[side][time]['.gif'] ? `
-                                            <img class="lazy" data-src="/static/imgs/${mouseData[side][time]['.gif']}"
-                                                 alt="${side} ${time} GIF">
-                                        ` : ''}
-                                    </div>
-                                </td>
-                            `).join('')}
-                        </tr>
-                    `).join('')}
-                </table>
-            `;
-            container.innerHTML += mouseHtml;
-            currentIndex++;
-        }
+            const image = currentTable.querySelector(`img[alt*="${currentSide}"][alt*="${currentTime}"]`);
 
-        lazyLoadImages();
-        isLoading = false;
-    }
-
-    function lazyLoadImages() {
-        const lazyImages = document.querySelectorAll("img.lazy");
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    img.src = img.dataset.src;
-                    img.classList.remove("lazy");
-                    observer.unobserve(img);
+            // Move to next time
+            currentTimeIndex++;
+            if (currentTimeIndex >= timeOrder.length) {
+                currentTimeIndex = 0;
+                currentSideIndex++;
+                if (currentSideIndex >= sides.length) {
+                    currentSideIndex = 0;
+                    currentMouseIndex++;
                 }
-            });
-        });
+            }
 
-        lazyImages.forEach(img => imageObserver.observe(img));
-    }
-
-    function isScrolledToBottom() {
-        return window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
-    }
-
-    function handleScroll() {
-        if (isScrolledToBottom()) {
-            loadMoreContent();
+            return image;
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        if (Object.keys(imageData).length > 0) {
-            loadMoreContent();
-            window.addEventListener('scroll', handleScroll);
+        function loadImage(image) {
+            if (!image) return;
+
+            if (!image.classList.contains('loaded')) {
+                const img = new Image();
+                img.onload = function() {
+                    image.src = image.dataset.src;
+                    image.classList.add('loaded');
+                    setTimeout(loadNextImage, 100); // Small delay before loading next image
+                };
+                img.onerror = function() {
+                    console.error("Failed to load image:", image.dataset.src);
+                    setTimeout(loadNextImage, 100);
+                };
+                img.src = image.dataset.src;
+            } else {
+                loadNextImage();
+            }
+        }
+
+        function loadNextImage() {
+            const nextImage = getNextImage();
+            if (nextImage) {
+                loadImage(nextImage);
+            }
+        }
+
+        // Start loading images
+        loadNextImage();
+
+        // Optional: Use IntersectionObserver to prioritize visible images
+        if ("IntersectionObserver" in window) {
+            let lazyImageObserver = new IntersectionObserver(function (entries, observer) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        let lazyImage = entry.target;
+                        if (!lazyImage.classList.contains("loaded")) {
+                            loadImage(lazyImage);
+                        }
+                        observer.unobserve(lazyImage);
+                    }
+                });
+            });
+
+            document.querySelectorAll('img.lazy').forEach(function (lazyImage) {
+                lazyImageObserver.observe(lazyImage);
+            });
         }
     });
 </script>

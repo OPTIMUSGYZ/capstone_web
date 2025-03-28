@@ -81,4 +81,4 @@ def dwt():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=9140, debug=False)
+    app.run(host='0.0.0.0', port=3180, debug=False)
