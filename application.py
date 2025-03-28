@@ -17,6 +17,7 @@ def parse_image_name(filename):
         }
     return None
 
+
 def organize_images(images):
     organized = {}
     for img in images:
@@ -29,7 +30,10 @@ def organize_images(images):
                     'right': {'pre': {}, '2hpi': {}, '4hpi': {}, '6hpi': {}}
                 }
             organized[mn][info['side']][info['time']][info['extension']] = img
-    return organized
+
+    # Sort the organized dictionary by mouse number (mn)
+    sorted_organized = dict(sorted(organized.items(), key=lambda x: int(x[0])))
+    return sorted_organized
 
 def get_wavelength_images(wavelength):
     image_dir = os.path.join(app.static_folder, 'imgs')
