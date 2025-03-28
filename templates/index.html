@@ -136,11 +136,63 @@
             font-weight: normal;
             text-align: center;
         }
+
+        .content h1 {
+            color: #4169E1;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .content h2 {
+            color: #3a5dc9;
+            margin-top: 20px;
+        }
+
+        .content ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+
+        .content li {
+            margin-bottom: 10px;
+        }
+
+        .welcome-content {
+            text-align: center;
+            margin: 0 auto;
+        }
+
+        .welcome-content h1 {
+            color: #4169E1;
+            margin-bottom: 30px;
+        }
+
+        .welcome-content h2 {
+            color: #3a5dc9;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .welcome-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .welcome-content li {
+            margin-bottom: 10px;
+        }
+
+        .nav-instruction {
+            margin-top: 40px;
+            font-style: italic;
+            color: #666;
+        }
     </style>
 </head>
 <body>
 <nav class="navbar">
     <div class="navbar-container">
+        <a href="{{ url_for('index') }}">Welcome</a>
         <div class="dropdown">
             <a href="#">F-Mode</a>
             <div class="dropdown-content">
@@ -156,7 +208,26 @@
 
 <div class="content">
     {% if content == 'Welcome' %}
-    <p>Please select a mode from the navigation menu.</p>
+    <div class="welcome-content">
+        <h1>Ultrasound and Photoacoustic Imaging of Lung Injuries</h1>
+        <h2>2024914 Team Members</h2>
+        <ul>
+            <li>Jonathan Gao</li>
+            <li>Jerry Wang</li>
+            <li>Angelina Zhai</li>
+            <li>Natasha Susanto</li>
+        </ul>
+        <h2>Supervisors</h2>
+        <ul>
+            <li>Dr. Eno Hysi</li>
+            <li>Prof. Khoman Phang</li>
+        </ul>
+        <h2>Administrator</h2>
+        <ul>
+            <li>Prof. Steve Man</li>
+        </ul>
+        <p class="nav-instruction">Please select an option from the navigation bar above to view the project data.</p>
+    </div>
     {% elif content == 'DWT - Coming Soon' %}
     <p>DWT functionality is coming soon.</p>
     {% elif content in ['750nm Information', '806nm Information', '850nm Information'] %}
