@@ -232,37 +232,7 @@
     <p>DWT functionality is coming soon.</p>
     {% elif content in ['750nm Information', '806nm Information', '850nm Information'] %}
     <h2>{{ content.split()[0] }} Images</h2>
-    {% for mn, data in organized_images.items() %}
-    <h3>Mouse {{ mn }}</h3>
-    <table>
-        <tr>
-            <th></th>
-            <th>pre</th>
-            <th>2hpi</th>
-            <th>4hpi</th>
-            <th>6hpi</th>
-        </tr>
-        {% for side in ['left', 'right'] %}
-        <tr>
-            <th>{{ side.capitalize() }}</th>
-            {% for time in ['pre', '2hpi', '4hpi', '6hpi'] %}
-            <td>
-                <div class="image-container">
-                    {% if '.png' in data[side][time] %}
-                    <img src="{{ url_for('static', filename='imgs/' + data[side][time]['.png']) }}"
-                         alt="{{ side }} {{ time }} PNG">
-                    {% endif %}
-                    {% if '.gif' in data[side][time] %}
-                    <img src="{{ url_for('static', filename='imgs/' + data[side][time]['.gif']) }}"
-                         alt="{{ side }} {{ time }} GIF">
-                    {% endif %}
-                </div>
-            </td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </table>
-    {% endfor %}
+    <div id="image-container"></div>
     {% elif content == 'Average Plots' %}
     <h2>Average Plots</h2>
     <div class="avg-plots-container">
@@ -289,5 +259,93 @@
     </div>
     {% endif %}
 </div>
+<script>
+    const imageData = JSON.parse('{{ organized_images|tojson|safe if organized_images else "{}" }}');
+    let currentIndex = 0;
+    const itemsPerLoad = 2;
+    let isLoading = false;
+
+    function loadMoreContent() {
+        if (isLoading) return;
+        isLoading = true;
+
+        const container = document.getElementById('image-container');
+        const keys = Object.keys(imageData);
+
+        for (let i = 0; i < itemsPerLoad && currentIndex < keys.length; i++) {
+            const key = keys[currentIndex];
+            const mouseData = imageData[key];
+            const mouseHtml = `
+                <h3>Mouse ${key}</h3>
+                <table>
+                    <tr>
+                        <th></th>
+                        <th>pre</th>
+                        <th>2hpi</th>
+                        <th>4hpi</th>
+                        <th>6hpi</th>
+                    </tr>
+                    ${['left', 'right'].map(side => `
+                        <tr>
+                            <th>${side.charAt(0).toUpperCase() + side.slice(1)}</th>
+                            ${['pre', '2hpi', '4hpi', '6hpi'].map(time => `
+                                <td>
+                                    <div class="image-container">
+                                        ${mouseData[side][time]['.png'] ? `
+                                            <img class="lazy" data-src="/static/imgs/${mouseData[side][time]['.png']}"
+                                                 alt="${side} ${time} PNG">
+                                        ` : ''}
+                                        ${mouseData[side][time]['.gif'] ? `
+                                            <img class="lazy" data-src="/static/imgs/${mouseData[side][time]['.gif']}"
+                                                 alt="${side} ${time} GIF">
+                                        ` : ''}
+                                    </div>
+                                </td>
+                            `).join('')}
+                        </tr>
+                    `).join('')}
+                </table>
+            `;
+            container.innerHTML += mouseHtml;
+            currentIndex++;
+        }
+
+        lazyLoadImages();
+        isLoading = false;
+    }
+
+    function lazyLoadImages() {
+        const lazyImages = document.querySelectorAll("img.lazy");
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.dataset.src;
+                    img.classList.remove("lazy");
+                    observer.unobserve(img);
+                }
+            });
+        });
+
+        lazyImages.forEach(img => imageObserver.observe(img));
+    }
+
+    function isScrolledToBottom() {
+        return window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+    }
+
+    function handleScroll() {
+        if (isScrolledToBottom()) {
+            loadMoreContent();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (Object.keys(imageData).length > 0) {
+            loadMoreContent();
+            window.addEventListener('scroll', handleScroll);
+        }
+    });
+</script>
 </body>
 </html>
